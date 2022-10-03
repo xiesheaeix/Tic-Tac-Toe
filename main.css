@@ -1,5 +1,7 @@
 * {
     box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+    font-family: 'Reenie Beanie', cursive;
 }
 
 body {
@@ -12,22 +14,29 @@ body {
 }
 
 header {
-    font-size: 5vmin;
+    font-size: 15vmin;
     color: palevioletred;
     letter-spacing: 0.5vmin;
 }
 
 h1 {
-    color: pink
+    margin-top: -5px;
+    font-size: 7vmin;
+    border-radius: 30px;
+    padding: 20px;
+    color: pink;
 }
 
 #board {
     display: grid;
     grid-template-columns: repeat(3, 20vmin);
     grid-template-rows: repeat(3, 20vmin);
-    /*gap: 1vmin;*/
-    margin-top: 1vmin;
     cursor: pointer;
+}
+
+#board > div {
+    font-size: 22vmin;
+    text-align: center;
 }
 
 .right-border {
@@ -50,6 +59,7 @@ button {
     border-radius: 4vmin;
     border: 0.1vmin solid gray;
     text-color: palevioletred;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 
