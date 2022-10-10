@@ -1,89 +1,101 @@
 /*----- constants -----*/
-const playerMoves = {
-    '' : '',
-    '1' : 'X',
-    '-1' : 'O',
-};
+const TILEBOARD = [{'color': 'orange', 'show': false, 'matched': false},
+{'color': 'pink', 'show': false, 'matched': false},
+{'color': 'green', 'show': false, 'matched': false},
+{'color': 'yellow', 'show': false, 'matched': false},
+{'color': 'blue', 'show': false, 'matched': false},
+{'color': 'red', 'show': false, 'matched': false},
+{'color': 'gray', 'show': false, 'matched': false},
+{'color': 'purple', 'show': false, 'matched': false},
+];
 
-const winningCombos = [
-    [0, 1, 2], // horizontal wins
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6], // vertical wins 
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8], // diagonal win
-    [2, 4, 6], // anti-diagonal win
-  ];
+/*----- app's state (variables) -----*/
+let tiles; // object holding the 16 tiles with their properties set to the value of background color they will have, contains matching tiles
+//let selectedTiles; // will hold the value of 1 of 2 of tiles clicked
+let firstTile; // will hold value of other tile clicked
+let winner; // will be set to true if all tiles are matched by end of game
+let ignoreClicks;
+let matchedTiles = [];
 
-/*----- state variables -----*/
-let board; // array of 3 column arrays
-let turn; // 1 or -1
-let winner; // null = no winner, 1 or -1 = winner, 'T' = tie;
-/*----- cached elements  -----*/
-const messageEl = document.querySelector('h1');
-const resetBtn = document.querySelector('button');
+/*----- cached element references -----*/
+const board = document.getElementById('board');
+const button = document.querySelector('button');
 
 /*----- event listeners -----*/
-document.getElementById('board').addEventListener('click', handleClick);
-resetBtn.addEventListener('click', init);
+board.addEventListener('click', handleClick);
+button.addEventListener('click', init);
 
 /*----- functions -----*/
 init();
 
 function init() {
-    board = ['', '', '', '', '', '', '', '', ''];
-    turn = 1;
-    winner = null;
-    gameOver = false;
+    tiles = shuffleTiles();
+    firstTile = null;
+    winner = false;
+    wrongClicks = 0;
     render();
 }
 
+
 function handleClick(evt) {
-const sqrIdx = parseInt(evt.target.id.replace('sqr', ''));
-if (
-    isNaN(sqrIdx) ||
-    board[sqrIdx] ||
-    winner 
-) return;
-board[sqrIdx] = turn;
-turn *= -1;
-winner = getWinner();
+const curTile = evt.target.id.match(/\d+/g);
+if(curTile === 'board' || ignoreClicks) return;
+tiles[curTile].show = true;
+if (firstTile) {
+    let tempTiles = [];
+    tempTiles.push(firstTile);
+    tempTiles.push(tiles[curTile]);
+    if (tiles[curTile].color === firstTile.color) {
+        document.querySelector('h4').innerText = 'its a match';
+        tempTiles[0].matched = true;
+        tempTiles[1].matched = true;
+        matchedTiles.push(...tempTiles);
+    } else { 
+        wrongClicks ++;
+        document.querySelector('.bad-clicks').innerText = `Wrong clicks : ${wrongClicks}`;
+        document.querySelector('h4').innerText = 'its NOT match';
+        setTimeout(function flipTiles() {
+            tempTiles[0].show = false;
+            tempTiles[1].show = false;
+            render();
+            tempTiles = [];
+        }, 500);
+    }
+    firstTile = null;
+} else {
+    firstTile = tiles[curTile];
+}
 render();
 }
 
-function getWinner() {
-    for (let i = 0; i < winningCombos.length; i++) {
-        if (Math.abs(board[winningCombos[i][0]] +
-            board[winningCombos[i][1]] + 
-            board[winningCombos[i][2]]) === 3)
-            return board[winningCombos[i][0]];
-    }
-    if (board.includes('')) return null;
-return 'T';
-} 
+const isWinner = tiles.every((tile) => {
+    tile.matched = true; return winner = true;
+});
 
+function renderBoard() {
+    tiles.forEach(function(tile, idx) {
+        const tileId = `tile${idx}`;
+        const tileEl = document.getElementById(tileId);
+        (tiles[idx].show || tile === firstTile) ? 
+        tileEl.style.backgroundColor = tiles[idx].color : 
+        tileEl.style.backgroundColor = 'white';
+    });
+}
+
+function shuffleTiles() {
+    let tempTiles = [];
+    let tiles = [];
+    for (let tile of TILEBOARD) {
+        tempTiles.push({...tile}, {...tile});
+    }
+    while (tempTiles.length) {
+        let rand =  Math.floor(Math.random() * tempTiles.length); 
+        let tile = tempTiles.splice(rand, 1)[0];
+        tiles.push(tile);
+    }
+    return tiles;
+}
 
 function render() {
     renderBoard();
-    renderMessage();
-    resetBtn.disabled = !winner;
-}
-
-function renderBoard() {
- board.forEach(function (sqrs, idx){
-    //console.log(idx);
-    const sqrEl = document.getElementById(`sqr${idx}`);
-    sqrEl.innerText = playerMoves[sqrs];
- });
-}
-
-function renderMessage() {
- if (winner === 'T') {
-    return messageEl.innerText = "It's a Tie!";
- } else if (winner) {
-    messageEl.innerText = `${playerMoves[winner]} Wins!!`;
- } else {
-    messageEl.innerText = `${playerMoves[turn]}'s Turn`;
- }
 }
